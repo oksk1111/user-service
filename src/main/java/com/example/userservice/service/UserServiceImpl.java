@@ -7,11 +7,16 @@ import com.example.userservice.vo.ResponseOrder;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +28,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final Environment env;
+    private final RestTemplate restTemplate;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -62,8 +69,20 @@ public class UserServiceImpl implements UserService {
 
         UserDto userDto = new ModelMapper().map(userEntity, UserDto.class);
 
-        List<ResponseOrder> orders = new ArrayList<>();
-        userDto.setOrders(orders);
+//        List<ResponseOrder> orders = new ArrayList<>();
+//        userDto.setOrders(orders);
+
+        /* Using as resttemplate */
+        // 사용자ID 를 포함한 주소를 이용해서, order url을 통해 정보 조회하기
+        String orderUrl = String.format(env.getProperty("order_service.url"), userId); // from remote config
+        // url, 요청방식, 요청시인자, 리턴받는값(해당endpoint의 리턴값과 같아야함)
+        ResponseEntity<List<ResponseOrder>> orderListResponse =
+                restTemplate.exchange(orderUrl, HttpMethod.GET, null,
+                new ParameterizedTypeReference<List<ResponseOrder>>() {
+                });
+        // ResponseEntity -> List<ResponseOrder>
+        List<ResponseOrder> orderList = orderListResponse.getBody();
+        userDto.setOrders(orderList);
         return userDto;
     }
 
