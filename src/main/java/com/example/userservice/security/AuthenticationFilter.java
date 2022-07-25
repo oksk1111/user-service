@@ -65,7 +65,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         //JWT 토큰 생성
         String token = Jwts.builder()
                 .setSubject(userDetails.getUserId())    //해당값으로 토큰만들기
-                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(env.getProperty("token.expiration_time"))))  //토큰유효기간 설정
+                .setExpiration(new Date(System.currentTimeMillis() +
+                        Long.parseLong(env.getProperty("token.expiration_time"))))  //토큰유효기간 설정
                 .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret")) //암호화
                 .compact();
 

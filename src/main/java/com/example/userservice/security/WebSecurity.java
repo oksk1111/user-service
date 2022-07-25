@@ -31,7 +31,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests().antMatchers("/actuator/**").permitAll();   //특정 config(yml)를 통해 접근시 모든 권한 허용
         http.authorizeRequests().antMatchers("/**")
-                .hasIpAddress("192.168.200.102") // <- IP 변경
+                .hasIpAddress( "host.docker.internal") // <- IP 변경
                 .and()
                 .addFilter(getAuthenticationFilter());
 
